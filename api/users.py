@@ -1,100 +1,34 @@
-from database import get_redis
-from fastapi import APIRouter,Header
-from db import db
-from pydantic import BaseModel
-from core.exceptions import ConflictError,UnauthorizeError,NotFoundError
-from utils.jwt import encode as jwt_encode,decode as jwt_decode
-import random,bcrypt,logging,os,time
+from fastapi import APIRouter, Header
+from services.auth_service import AuthService
+from core.exceptions import UnauthorizeError
+from core.security import decode_token
+from models.user import UserLoginRequest
+import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-class User(BaseModel):
-    username:str
-    userpassword:str
-    email:str
+auth_service = AuthService()
 
 
-@router.post("/logup")
-def logup(user:User):
-    logger.info(f"Register attempt:{user.username}")
-    redis = get_redis()
-    # search username in User_db and Redis
-    name = redis.hgetall(f"user:{user.username}")
-    if name:
-        logger.warning(f"Registration blocked:{user.username} already in Redis")
-        raise ConflictError("用户名已经存在")
-    name = db.fetch_one("SELECT username FROM users WHERE username = %s",(user.username,))
-    if name:
-        logger.warning(f"Registration blocked:{user.username} already in DB")
-        raise ConflictError("用户名已经存在")
-    
-    hash_pwd = bcrypt.hashpw(user.userpassword.encode(),bcrypt.gensalt()).decode()
-    new_id = db.insert("INSERT INTO users (username,userpassword,email) VALUES (%s,%s,%s)",(user.username,hash_pwd,user.email))
-
-    redis.hset(f"user:{user.username}",mapping={
-        "username":user.username,
-        "email":user.email,
-        "password":hash_pwd,
-        "id":new_id
-    })
-    redis.expire(f"user:{user.username}",300+random.randint(0,120))
-
-    logger.info(f"User registered:{user.username},id={new_id}")
-    return {"message":"User created successfully","id":new_id}
-    
+@router.post("/signup")
+def logup(user:UserLoginRequest):
+    logger.info(f"{user.username}正在尝试注册")
+    result = auth_service.register(user.username,user.userpassword,user.email)
+    logger.info(f"用户注册成功:{user.username},id:{result['id']}")
+    return {"message":"用户注册成功","id":result["id"]}
 @router.post("/login")
-def login(user:User):
-    logger.info(f"Login attempt:{user.username}")
-    redis = get_redis()
-    
-    usr = redis.hgetall(f"user:{user.username}")
-    if usr and usr.get("password"):
-        if not bcrypt.checkpw(user.userpassword.encode(),usr.get("password").encode()):
-            logger.warning(f"Login failed:wrong password for {user.username}")
-            raise NotFoundError("用户名或者密码错误")
-        
-        token = jwt_encode({
-            "username":user.username,
-            "user_id":usr.get("id"),
-            "exp":time.time()+int(os.getenv("JWT_TOKEN_EXPIRE",3600))
-        },os.getenv("JWT_SECRET","myblog_jwt_secret"))
-        logger.info(f"Login successfully!{user.username} from cache")
-        return {"username":usr.get("username"),"token":token}
-    if usr.get("__NULL__"):
-        logger.warning(f"Login blocked:{user.username},querying DB")
-        raise NotFoundError("用户名或者密码错误")
-    
-    if not usr:
-        logger.info(f"Cache miss for {user.username},querying DB")
-        row = db.fetch_one("SELECT id,username,userpassword FROM users WHERE username = %s",(user.username,))
-        if not row:
-            logger.warning(f"Login blocked:{user.username} not found in DB")
-            redis.hset(f"user:{user.username}",mapping={"__NULL__":"1"})
-            redis.expire(f"user:{user.username}",15+random.randint(0,20))
-            raise NotFoundError("用户名或者密码错误")
-        redis.hset(f"user:{user.username}",mapping={
-            "username":user.username,
-            "password":row["userpassword"],
-            "id":row["id"]
-        })
-        redis.expire(f"user:{user.username}",300+random.randint(0,120))
-        usr = redis.hgetall(f"user:{user.username}")
-        logger.info(f"Login success:{user.username} (DB->cache)")
-
-        token = jwt_encode({
-            "username":user.username,
-            "user_id":usr.get("id"),
-            "exp":time.time()+os.getenv("JWT_TOKEN_EXPIRE",3600)
-        },os.getenv("JWT_SECRET","myblog_jwt_secret"))
-        return {"username":usr.get("username"),"token":token}
+def login(user:UserLoginRequest):
+    logger.info(f"{user.username}正在尝试登录")
+    result = auth_service.login(user.username,user.userpassword)
+    logger.info(f"用户登录成功:{user.username},token:{result['token']}")
+    return {"message":"用户登录成功","token":result["token"]}
     
 @router.get("/me")
 def get_me(authorization:str=Header(None)):
     if not authorization or " " not in authorization:
         raise UnauthorizeError()
     token = authorization.split(" ")[1]
-    payload = jwt_decode(token,os.getenv("JWT_SECRET","myblog_jwt_secret"))
+    payload = decode_token(token)
     if not payload:
         raise UnauthorizeError()
     return {"username":payload.get("username"),"user_id":payload.get("user_id")}
