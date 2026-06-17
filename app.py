@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
+from fastapi.responses import JSONResponse
+from core.exceptions import AppException
 from contextlib import asynccontextmanager
 from config import CONFIG as config
 from datetime import datetime
@@ -44,3 +46,14 @@ async def add_security_headers(request,call_next):
 @app.get("/")
 def root():
     return {"message":"Hello World!"}
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request:Request,exc:AppException):
+    return JSONResponse(
+        status_code = exc.status,
+        content={
+            "code":exc.code,
+            "message":exc.messsage,
+            "status":exc.status
+        }
+    )

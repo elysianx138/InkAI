@@ -1,7 +1,8 @@
 from database import get_redis
-from fastapi import APIRouter,HTTPException,Header
+from fastapi import APIRouter,Header
 from db import db
 from pydantic import BaseModel
+from core.exceptions import ConflictError,UnauthorizeError,NotFoundError
 from utils.jwt import encode as jwt_encode,decode as jwt_decode
 import random,bcrypt,logging,os,time
 
@@ -22,11 +23,11 @@ def logup(user:User):
     name = redis.hgetall(f"user:{user.username}")
     if name:
         logger.warning(f"Registration blocked:{user.username} already in Redis")
-        raise HTTPException(status_code=409,detail="Username already exists")
+        raise ConflictError("用户名已经存在")
     name = db.fetch_one("SELECT username FROM users WHERE username = %s",(user.username,))
     if name:
         logger.warning(f"Registration blocked:{user.username} already in DB")
-        raise HTTPException(status_code=409,detail="Username already exists")
+        raise ConflictError("用户名已经存在")
     
     hash_pwd = bcrypt.hashpw(user.userpassword.encode(),bcrypt.gensalt()).decode()
     new_id = db.insert("INSERT INTO users (username,userpassword,email) VALUES (%s,%s,%s)",(user.username,hash_pwd,user.email))
@@ -51,18 +52,18 @@ def login(user:User):
     if usr and usr.get("password"):
         if not bcrypt.checkpw(user.userpassword.encode(),usr.get("password").encode()):
             logger.warning(f"Login failed:wrong password for {user.username}")
-            raise HTTPException(status_code=404,detail="Password not correct")
+            raise NotFoundError("用户名或者密码错误")
         
         token = jwt_encode({
             "username":user.username,
             "user_id":usr.get("id"),
-            "exp":time.time()+os.getenv("JWT_TOKEN_EXPIRE",3600)
+            "exp":time.time()+int(os.getenv("JWT_TOKEN_EXPIRE",3600))
         },os.getenv("JWT_SECRET","myblog_jwt_secret"))
         logger.info(f"Login successfully!{user.username} from cache")
         return {"username":usr.get("username"),"token":token}
     if usr.get("__NULL__"):
         logger.warning(f"Login blocked:{user.username},querying DB")
-        raise HTTPException(status_code=404,detail="User not found")
+        raise NotFoundError("用户名或者密码错误")
     
     if not usr:
         logger.info(f"Cache miss for {user.username},querying DB")
@@ -71,7 +72,7 @@ def login(user:User):
             logger.warning(f"Login blocked:{user.username} not found in DB")
             redis.hset(f"user:{user.username}",mapping={"__NULL__":"1"})
             redis.expire(f"user:{user.username}",15+random.randint(0,20))
-            raise HTTPException(status_code=404,detail="User not found")
+            raise NotFoundError("用户名或者密码错误")
         redis.hset(f"user:{user.username}",mapping={
             "username":user.username,
             "password":row["userpassword"],
@@ -90,8 +91,10 @@ def login(user:User):
     
 @router.get("/me")
 def get_me(authorization:str=Header(None)):
+    if not authorization or " " not in authorization:
+        raise UnauthorizeError()
     token = authorization.split(" ")[1]
     payload = jwt_decode(token,os.getenv("JWT_SECRET","myblog_jwt_secret"))
     if not payload:
-        raise HTTPException(status_code=401,detail="Unauthorized")
+        raise UnauthorizeError()
     return {"username":payload.get("username"),"user_id":payload.get("user_id")}
