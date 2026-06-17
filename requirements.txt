@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymysql
+DBUtils
+redis
+python-dotenv
+
+bcrypt
+httpx
