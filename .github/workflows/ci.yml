@@ -1,0 +1,34 @@
+name: CI/CD workflow
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    steps:
+      runs-on: ubuntu-latest
+      - run: echo "🐧 CI/CD集成正在运行!"
+      - name: 检查仓库代码
+        uses: actions/checkout@v4
+      - run: echo "💡 仓库代码检查完毕"
+
+      - name: 设置python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+        run: echo "🐍 设置python环境成功!"
+
+      - name: 安装依赖
+        run: |
+          pip install -r requirements.txt
+          pip install ruff
+        run: echo "📦 安装依赖成功!"
+
+      - name: 执行代码检查
+        run: ruff check .
+        run: echo "📦 执行代码检查成功!"
+
+      - name: 构建Docker镜像
+        run: docker build -t inkai .
+        run: echo "📦 构建Docker镜像成功!"
