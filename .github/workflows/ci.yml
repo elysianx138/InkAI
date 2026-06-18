@@ -37,7 +37,7 @@ jobs:
 
       - name: 登录并推送GitHub包仓库
         run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker tag inkai ${{ secrets.DOCKER_USERNAME }}/inkai:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/inkai:latest
           echo: "🚀 GitHub包仓库推送!"
