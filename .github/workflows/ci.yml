@@ -42,6 +42,6 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor}} --password-stdin
           REPO = (echo "${{ github.repository }}"" | tr '[:upper:]' '[:lower:]')
-          docker tag inkai ghcr.io/${{ lower(github.repository) }}:latest
-          docker push ghcr.io/${{ lower(github.repository) }}:latest
+          docker tag inkai ghcr.io/$REPO:latest
+          docker push ghcr.io/$REPO:latest
           echo "📦 登录并推送GitHub包仓库成功!"
