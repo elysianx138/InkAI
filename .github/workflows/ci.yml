@@ -40,8 +40,7 @@ jobs:
 
       - name: 登录并推送GitHub包仓库
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor}} --password-stdin
-          REPO = (echo "${{ github.repository }}"" | tr '[:upper:]' '[:lower:]')
-          docker tag inkai ghcr.io/$REPO:latest
-          docker push ghcr.io/$REPO:latest
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag inkai ghcr.io/elysianx138/inkai:latest
+          docker push ghcr.io/elysianx138/inkai:latest
           echo "📦 登录并推送GitHub包仓库成功!"
