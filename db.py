@@ -3,7 +3,8 @@ Create DB instance
 
 """
 
-import pymysql,os
+import pymysql
+import os
 from dotenv import load_dotenv
 from dbutils.pooled_db import PooledDB
 from contextlib import contextmanager

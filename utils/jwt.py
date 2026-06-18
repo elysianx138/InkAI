@@ -1,7 +1,8 @@
 import hashlib
 import hmac
 import base64
-import json,time
+import json
+import time
 
 def base64_bencode(data:bytes) -> str:
     # 二进制数据转ASCII
