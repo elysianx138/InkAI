@@ -7,6 +7,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: 检查仓库代码
@@ -37,7 +40,7 @@ jobs:
 
       - name: 登录并推送GitHub包仓库
         run: |
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker tag inkai ${{ secrets.DOCKER_USERNAME }}/inkai:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/inkai:latest
-          echo: "🚀 GitHub包仓库推送!"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor}} --password-stdin
+          docker tag inkai ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:latest
+          echo "📦 登录并推送GitHub包仓库成功!"
