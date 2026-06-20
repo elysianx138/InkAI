@@ -20,3 +20,7 @@ class ConflictError(AppException):
 class TooManyRequestsError(AppException):
     def __init__(self,message:str = "请求过于频繁"):
         super().__init__(code="TOO_MANY_REQUESTS",message=message,status=429)
+
+class MissingAuthorizationHeader(AppException):
+    def __init__(self,message:str = "缺少授权头"):
+        super().__init__(code="MISSING_AUTHORIZATION_HEADER",message=message,status=401)

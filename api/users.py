@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header,Request
 from services.auth_service import AuthService
 from core.exceptions import UnauthorizeError
 from core.security import decode_token
 from models.user import UserLoginRequest
+from utils.rate_limit import rate_limit_ip
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,13 +12,17 @@ auth_service = AuthService()
 
 
 @router.post("/signup")
-def logup(user:UserLoginRequest):
+def logup(user:UserLoginRequest,request:Request):
+    logger.info(f"对注册用户进行限流")
+    rate_limit_ip(key="limit:register",request=request,max_request=5,window=60)
     logger.info(f"{user.username}正在尝试注册")
     result = auth_service.register(user.username,user.userpassword,user.email)
     logger.info(f"用户注册成功:{user.username},id:{result['id']}")
     return {"message":"用户注册成功","id":result["id"]}
 @router.post("/login")
-def login(user:UserLoginRequest):
+def login(user:UserLoginRequest,request:Request):
+    logger.info(f"对登录用户进行限流")
+    rate_limit_ip(key="limit:login",request=request,max_request=3,window=60)
     logger.info(f"{user.username}正在尝试登录")
     result = auth_service.login(user.username,user.userpassword)
     logger.info(f"用户登录成功:{user.username},token:{result['token']}")

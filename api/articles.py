@@ -2,6 +2,7 @@ from fastapi import APIRouter, Header, HTTPException
 from services.article_service import ArticleService
 from core.security import decode_token
 from models.article import ArticleCreateRequest
+from utils.rate_limit import rate_limit_id
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ def post_article(article: ArticleCreateRequest, authorization: str = Header(None
     payload = decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
-
+    rate_limit_id(key=f"limit:article:{payload['user_id']}", id=payload["user_id"])
     article_id = article_service.create_article(
         article.title, article.content, article.tags, payload["user_id"]
     )
