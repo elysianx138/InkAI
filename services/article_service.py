@@ -29,6 +29,7 @@ class ArticleService:
         r.expire(f"article:{article_id}", 300 + random.randint(0, 120))
 
         r.hset("article:latest", mapping={
+            "article_id": str(article_id),
             "title": title,
             "content": content
         })
@@ -122,7 +123,11 @@ class ArticleService:
         if data:
             if "__NULL__" in data:
                 raise NotFoundError("文章不存在")
-            return {"title": data.get("title"), "content": data.get("content")}
+            return {
+                "article_id": data.get("article_id"),
+                "title": data.get("title"),
+                "content": data.get("content")
+            }
 
         if not redis.set(lock_key, "1", nx=True, ex=10):
             raise TooManyRequestsError()
@@ -135,15 +140,28 @@ class ArticleService:
                 raise NotFoundError("文章不存在")
 
             redis.hset(cache_key, mapping={
+                "article_id": article["id"],
                 "title": article["title"],
                 "content": article["content"]
             })
             redis.expire(cache_key, 300 + random.randint(0, 120))
-            return {"title": article["title"], "content": article["content"]}
+            return {"article_id": article["id"], "title": article["title"], "content": article["content"]}
         finally:
             redis.delete(lock_key)
 
     # ========== 按标签搜索文章 ==========
+
+    def get_hot_with_titles(self) -> list[dict]:
+        """获取热门文章列表，附加标题"""
+        hot = self.article_repo.find_hot(10)
+        if not hot:
+            return []
+        ids = [item["id"] for item in hot]
+        titles = self.article_repo.find_titles_by_ids(ids)
+        return [
+            {"article_id": item["id"], "title": titles.get(item["id"], f"文章#{item['id']}"), "likes": item["likes"]}
+            for item in hot
+        ]
 
     def get_articles_by_tag(self, tag: str) -> list[int]:
         redis = get_redis()

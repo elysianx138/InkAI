@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InkAI - AI 协作写作平台</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+</head>
+<body>
+
+  <!-- ═══ 导航栏 ═══ -->
+  <nav class="container-fluid">
+    <ul>
+      <li>
+        <strong style="cursor:pointer" hx-get="/hx/home" hx-target="#content" hx-push-url="/">
+          ✦ InkAI
+        </strong>
+      </li>
+    </ul>
+    <ul>
+      <li>
+        <a href="#" hx-get="/hx/home" hx-target="#content" hx-push-url="/">首页</a>
+      </li>
+      <li class="auth-required" style="display:none">
+        <a href="#" hx-get="/hx/articles/create" hx-target="#content">写文章</a>
+      </li>
+      <li class="auth-required" style="display:none">
+        <a href="#" hx-post="/hx/logout" hx-target="#content" hx-swap="innerHTML"
+           hx-confirm="确定退出吗？">退出</a>
+      </li>
+      <li class="auth-guest">
+        <a href="#" hx-get="/hx/login" hx-target="#content" role="button" class="contrast">
+          登录
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ═══ 主要内容区 ═══ -->
+  <main class="container" id="content">
+    <!-- HTMX loads content here on first visit -->
+    <div style="text-align:center;padding:3rem 0;color:var(--pico-muted-color)">
+      <p>加载中…</p>
+    </div>
+  </main>
+
+  <!-- ═══ 页脚 ═══ -->
+  <footer class="footer">
+    <div class="container">
+      <p>InkAI · AI 协作写作平台 · 后端实习项目</p>
+    </div>
+  </footer>
+
+  <!-- ═══ JWT 管理 ═══ -->
+  <script>
+    (function() {
+      // ── 给所有 HTMX 请求自动挂载 Authorization 头 ──
+      document.addEventListener('htmx:configRequest', function(e) {
+        var token = localStorage.getItem('inkai_token');
+        if (token) {
+          e.detail.headers['Authorization'] = 'Bearer ' + token;
+        }
+      });
+
+      // ── 响应中嵌入的 token 自动存入 localStorage ──
+      document.addEventListener('htmx:afterSwap', function(e) {
+        var tokenEl = document.getElementById('__token__');
+        if (tokenEl) {
+          localStorage.setItem('inkai_token', tokenEl.dataset.token);
+          tokenEl.remove();
+          updateAuthUI();
+        }
+
+        var logoutEl = document.getElementById('__logout__');
+        if (logoutEl) {
+          localStorage.removeItem('inkai_token');
+          updateAuthUI();
+          logoutEl.remove();
+        }
+
+        // 页面标题随内容更新
+        var titleEl = e.detail.target.querySelector('h1');
+        if (titleEl) {
+          document.title = titleEl.textContent + ' - InkAI';
+        } else if (e.detail.target.id === 'content' && e.detail.pathInfo.requestPath === '/hx/home') {
+          document.title = 'InkAI - AI 协作写作平台';
+        }
+      });
+
+      // ── 401 响应自动清除 token ──
+      document.addEventListener('htmx:responseError', function(e) {
+        if (e.detail.xhr.status === 401) {
+          localStorage.removeItem('inkai_token');
+          updateAuthUI();
+        }
+      });
+
+      // ── 更新导航栏的登录/退出显示 ──
+      function updateAuthUI() {
+        var token = localStorage.getItem('inkai_token');
+        document.querySelectorAll('.auth-required').forEach(function(el) {
+          el.style.display = token ? '' : 'none';
+        });
+        document.querySelectorAll('.auth-guest').forEach(function(el) {
+          el.style.display = token ? 'none' : '';
+        });
+      }
+
+      // ── 页面加载后自动加载首页 ──
+      document.addEventListener('DOMContentLoaded', function() {
+        updateAuthUI();
+        htmx.ajax('GET', '/hx/home', { target: '#content', swap: 'innerHTML' });
+      });
+
+      // 暴露 updateAuthUI 供全局使用
+      window.updateAuthUI = updateAuthUI;
+    })();
+  </script>
+
+</body>
+</html>

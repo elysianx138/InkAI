@@ -18,7 +18,7 @@ class ArticleRepo:
 
     def find_latest(self) -> dict | None:
         return db.fetch_one(
-            "SELECT title, content FROM articles ORDER BY id DESC LIMIT 1"
+            "SELECT id, title, content FROM articles ORDER BY id DESC LIMIT 1"
         )
 
     def find_hot(self, limit: int = 10) -> list[dict]:
@@ -40,6 +40,17 @@ class ArticleRepo:
             (tag,)
         )
         return [row["article_id"] for row in rows] if rows else []
+
+    def find_titles_by_ids(self, ids: list[int]) -> dict[int, str]:
+        """批量查文章标题，返回 {id: title}"""
+        if not ids:
+            return {}
+        placeholders = ",".join(["%s"] * len(ids))
+        rows = db.fetch_all(
+            f"SELECT id, title FROM articles WHERE id IN ({placeholders})",
+            ids
+        )
+        return {row["id"]: row["title"] for row in rows} if rows else {}
 
     def add_tags(self, article_id: int, tags: list[str]):
         if tags:

@@ -1,0 +1,293 @@
+/* ─── InkAI 自定义样式 ──────────────────────────── */
+
+/* 导航 */
+nav {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--pico-muted-border-color, #e0e0e0);
+  background: var(--pico-background-color, #fff);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav ul li strong {
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 首页英雄区 */
+.hero {
+  text-align: center;
+  padding: 2rem 0 1.5rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tagline {
+  color: var(--pico-muted-color, #666);
+  font-size: 1.1rem;
+}
+
+/* 搜索栏 */
+.search-bar {
+  max-width: 500px;
+  margin: 0 auto 1.5rem;
+}
+
+/* 内容网格 */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 文章卡片 */
+.article-card {
+  border: 1px solid var(--pico-muted-border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  background: var(--pico-card-background-color, #fff);
+}
+
+.article-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.article-card h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.article-card p {
+  color: var(--pico-muted-color, #666);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 热门文章列表 */
+.hot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--pico-muted-border-color, #e0e0e0);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.hot-item:hover {
+  background: var(--pico-primary-background, #f0f0ff);
+}
+
+.hot-title {
+  font-weight: 500;
+}
+
+.hot-likes {
+  color: var(--pico-muted-color, #999);
+  font-size: 0.85rem;
+}
+
+/* 标签徽章 */
+.tag-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  margin: 0.15rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  background: var(--pico-primary-background, #eef0ff);
+  color: var(--pico-primary, #646cff);
+  border: 1px solid var(--pico-primary-border, #d0d4ff);
+}
+
+/* 文章详情 */
+.article-detail {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.article-detail h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.article-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.article-content {
+  line-height: 1.8;
+  font-size: 1rem;
+  white-space: pre-wrap;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* 点赞按钮 */
+.likes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--pico-muted-border-color, #e0e0e0);
+  background: var(--pico-background-color, #fff);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.like-btn:hover:not(:disabled) {
+  background: #fff0f0;
+  border-color: #ffc0c0;
+}
+
+.like-btn.liked {
+  background: #fff0f0;
+  border-color: #ff8080;
+  color: #e44;
+}
+
+.like-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-hint {
+  font-size: 0.8rem;
+  color: var(--pico-muted-color, #999);
+}
+
+/* 认证页面 */
+.auth-page {
+  max-width: 400px;
+  margin: 2rem auto;
+}
+
+.auth-page h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+/* 创建文章页面 */
+.create-page {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.create-page h2 {
+  margin-bottom: 1.5rem;
+}
+
+/* 搜索结果显示 */
+#search-results {
+  margin-bottom: 1rem;
+}
+
+#search-results h4 {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--pico-muted-color, #666);
+}
+
+.search-item {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--pico-muted-border-color, #e0e0e0);
+  border-radius: 6px;
+  margin-bottom: 0.3rem;
+  transition: background 0.2s;
+}
+
+.search-item:hover {
+  background: var(--pico-primary-background, #f0f0ff);
+}
+
+/* 提示消息 */
+.error-msg {
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  background: #fff0f0;
+  color: #c44;
+  border: 1px solid #ffd0d0;
+  margin: 0.5rem 0;
+}
+
+.success-msg {
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  background: #f0fff0;
+  color: #2a8;
+  border: 1px solid #d0ffd0;
+  margin: 0.5rem 0;
+}
+
+.empty {
+  color: var(--pico-muted-color, #999);
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+/* 加载指示器.htmx-request 动画 */
+div.htmx-request {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+/* 淡入动画.htmx-swapping */
+article,
+div {
+  transition: opacity 0.1s;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--pico-muted-color, #999);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--pico-muted-border-color, #e0e0e0);
+  margin-top: 3rem;
+}
