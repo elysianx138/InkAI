@@ -21,6 +21,11 @@ def post_article(article: ArticleCreateRequest, user = Depends(get_user_authoriz
     logger.info(f"Article created: id={article_id}, author={user['username']}")
     return {"message": "Successfully created article", "article_id": article_id}
 
+@router.delete("/articles/{article_id}")
+def delete_article(article_id: int, user = Depends(get_user_authorization)):
+    article_service.delete_article(article_id, user["user_id"])
+    return {"message": "Successfully deleted article", "article_id": article_id}
+
 
 @router.get("/articles/{article_id}")
 def get_article(article_id: int):

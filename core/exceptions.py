@@ -24,3 +24,7 @@ class TooManyRequestsError(AppException):
 class MissingAuthorizationHeader(AppException):
     def __init__(self,message:str = "缺少授权头"):
         super().__init__(code="MISSING_AUTHORIZATION_HEADER",message=message,status=401)
+
+class ForbiddenError(AppException):
+    def __init__(self,message:str = "权限不足"):
+        super().__init__(code="FORBIDDEN",message=message,status=403)

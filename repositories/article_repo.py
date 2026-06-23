@@ -9,6 +9,12 @@ class ArticleRepo:
             "INSERT INTO articles (title, content, author_id) VALUES (%s, %s, %s)",
             (title, content, author_id)
         )
+    
+    def delete_article_by_id(self, article_id: int):
+        return db.delete(
+            "DELETE FROM articles WHERE id = %s" ,
+            (article_id,)
+        )
 
     def find_by_id(self, article_id: int) -> dict | None:
         return db.fetch_one(

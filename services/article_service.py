@@ -1,7 +1,7 @@
 import random
 from database import get_redis
 from repositories.article_repo import ArticleRepo
-from core.exceptions import NotFoundError, TooManyRequestsError
+from core.exceptions import NotFoundError, TooManyRequestsError, ForbiddenError
 
 
 class ArticleService:
@@ -36,6 +36,21 @@ class ArticleService:
         r.expire("article:latest", 300 + random.randint(0, 120))
 
         return article_id
+    
+    # ========== 删除单篇文章 ==========
+
+    def delete_article(self, article_id: int, user_id: int):
+        article = self.article_repo.find_by_id(article_id)
+        if not article:
+            raise NotFoundError("文章不存在")
+
+        if user_id != article["author_id"]:
+            raise ForbiddenError()
+        
+        redis = get_redis()
+        redis.delete(f"article:{article_id}")
+        self.article_repo.delete_article_by_id(article_id)
+        
 
     # ========== 获取单篇文章（缓存穿透保护） ==========
 
