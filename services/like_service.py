@@ -28,7 +28,7 @@ class LikeService:
     def get_likes(self, article_id: int) -> int:
         redis = get_redis()
         cache_key = f"article:{article_id}:likes"
-        lock_key = f"lock:article:{article_id}:likes"
+        lock_key = f"lock:{cache_key}"
 
         data = redis.get(cache_key)
         if data is not None:
@@ -53,7 +53,7 @@ class LikeService:
     def get_hot_articles(self) -> list[dict]:
         redis = get_redis()
         cache_key = "hot:articles"
-        lock_key = "lock:hot:articles"
+        lock_key = f"lock:{cache_key}"
 
         data = redis.zrevrange(cache_key, 0, 9, withscores=True)
         if data:

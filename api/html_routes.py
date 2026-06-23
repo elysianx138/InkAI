@@ -6,7 +6,7 @@ from services.article_service import ArticleService
 from services.like_service import LikeService
 from core.security import decode_token
 from core.exceptions import AppException, NotFoundError, TooManyRequestsError
-from utils.rate_limit import rate_limit_ip
+from core.rate_limit import rate_limit_ip
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/hx")

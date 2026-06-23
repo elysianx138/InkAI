@@ -1,12 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
 from services.like_service import LikeService
+from core.get_user_authorization import get_user_authorization
 
 router = APIRouter()
 like_service = LikeService()
 
 
 @router.post("/articles/{article_id}/likes")
-def post_article_likes(article_id: int):
+def post_article_likes(article_id: int, _: dict = Depends(get_user_authorization)):
     likes = like_service.like_article(article_id)
     return {"message": "Success", "article_id": article_id, "likes": likes}
 

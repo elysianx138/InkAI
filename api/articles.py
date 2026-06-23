@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Header, HTTPException
-from services.article_service import ArticleService
-from core.security import decode_token
-from models.article import ArticleCreateRequest
-from utils.rate_limit import rate_limit_id
 import logging
+
+from fastapi import APIRouter, Depends
+from services.article_service import ArticleService
+from models.article import ArticleCreateRequest
+from core.rate_limit import rate_limit_id
+from core.get_user_authorization import get_user_authorization
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -11,18 +13,12 @@ article_service = ArticleService()
 
 
 @router.post("/articles")
-def post_article(article: ArticleCreateRequest, authorization: str = Header(None)):
-    if not authorization or " " not in authorization:
-        raise HTTPException(status_code=401, detail="Missing authorization header")
-    token = authorization.split(" ")[1]
-    payload = decode_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    rate_limit_id(key=f"limit:article:{payload['user_id']}", id=payload["user_id"])
+def post_article(article: ArticleCreateRequest, user = Depends(get_user_authorization)):
+    rate_limit_id(key=f"limit:article:{user["user_id"]}", id=user["user_id"])
     article_id = article_service.create_article(
-        article.title, article.content, article.tags, payload["user_id"]
+        article.title, article.content, article.tags, user["user_id"]
     )
-    logger.info(f"Article created: id={article_id}, author={payload['username']}")
+    logger.info(f"Article created: id={article_id}, author={user['username']}")
     return {"message": "Successfully created article", "article_id": article_id}
 
 

@@ -1,6 +1,9 @@
-from fastapi import APIRouter
-from services.auth_service import AuthService
 import os
+
+from fastapi import APIRouter
+
+from services.auth_service import AuthService
+
 
 router = APIRouter()
 auth_service = AuthService()

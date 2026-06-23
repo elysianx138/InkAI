@@ -1,17 +1,21 @@
+import logging
+from datetime import datetime
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from core.exceptions import AppException
 from contextlib import asynccontextmanager
+
+from core.exceptions import AppException
 from config import CONFIG as config
-from datetime import datetime
+
 from api.users import router as users_router
 from api.articles import router as articles_router
 from api.likes import router as likes_router
 from api.tags import router as tags_router
 from api.auth import router as auth_router
 from api.html_routes import router as html_router
-import logging
+
 
 logger = logging.getLogger("uvicorn")
 
@@ -56,6 +60,10 @@ async def add_security_headers(request,call_next):
 @app.get("/")
 def root():
     return FileResponse("frontend/index.html", media_type="text/html")
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok", "version": config.version}
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request:Request,exc:AppException):

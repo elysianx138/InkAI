@@ -42,7 +42,7 @@ class ArticleService:
     def get_article(self, article_id: int) -> dict:
         redis = get_redis()
         cache_key = f"article:{article_id}"
-        lock_key = f"lock:article:{article_id}"
+        lock_key = f"lock:{cache_key}"
 
         # 查缓存
         data = redis.hgetall(cache_key)
@@ -88,7 +88,7 @@ class ArticleService:
     def get_article_tags(self, article_id: int) -> list[str]:
         redis = get_redis()
         cache_key = f"article:{article_id}:tags"
-        lock_key = f"lock:article:{article_id}:tags"
+        lock_key = f"lock:article:{cache_key}"
 
         tags = redis.smembers(cache_key)
         if tags:
@@ -117,7 +117,7 @@ class ArticleService:
     def get_latest_article(self) -> dict:
         redis = get_redis()
         cache_key = "article:latest"
-        lock_key = "lock:article:latest"
+        lock_key = f"lock:{cache_key}"
 
         data = redis.hgetall(cache_key)
         if data:
@@ -166,7 +166,7 @@ class ArticleService:
     def get_articles_by_tag(self, tag: str) -> list[int]:
         redis = get_redis()
         cache_key = f"tags:{tag}"
-        lock_key = f"lock:tags:{tag}"
+        lock_key = f"lock:{cache_key}"
 
         data = redis.smembers(cache_key)
         if data:
